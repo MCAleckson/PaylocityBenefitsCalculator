@@ -209,6 +209,9 @@ public class EmployeesController : ControllerBase
 
                 if (employeeResult.Value.Success != false)   // Build paycheck list
                 {
+                    // Initialize annual variables
+                    decimal grossAnnualSalary = 0;
+                    decimal grossAnnualDeductions = 0;
 
                     // Initialize monthly variables
                     decimal monthlyEmployeeSalary = 0;
@@ -234,24 +237,43 @@ public class EmployeesController : ControllerBase
                         if (dependentDto.Age >= 50) monthlyAdditionalDependentsOver50Deduction += 200;
                     }
 
+                    // Set annual variables (to calculate rounding error and adjust during first pay period)
+                    grossAnnualSalary = employee.Salary;
+                    grossAnnualDeductions = (monthlyDefaultDeduction + monthlyDependentsDeduction + monthlyAdditionalDependentsOver50Deduction + monthlyEmployeeSalaryOver80KDeduction) * 12;
+
                     // Set per pay period variables
                     grossSalaryPerPeriod = monthlyEmployeeSalary * 12 / payPeriodsPerYear;
-                    totalDeductionsPerPeriod = (monthlyDefaultDeduction + monthlyDependentsDeduction + monthlyAdditionalDependentsOver50Deduction + monthlyEmployeeSalaryOver80KDeduction) * 12 / payPeriodsPerYear;
+                    totalDeductionsPerPeriod = grossAnnualDeductions / payPeriodsPerYear;
                     
                     // Create pay check list
                     paycheckList.FirstName = employee.FirstName;
                     paycheckList.LastName = employee.LastName;
-                    paycheckList.AnnualSalary = employee.Salary;
+                    paycheckList.AnnualSalary = String.Format("{0:C}",grossAnnualSalary);
+                    paycheckList.AnnualDeductions = String.Format("{0:C}",grossAnnualDeductions);
 
                     for (int i = 1; i <= payPeriodsPerYear; i++)
                     {
                         GetEmployeePaycheckDto paycheck = new GetEmployeePaycheckDto();
 
                         paycheck.Id = i;
-                        paycheck.GrossSalaryForPeriod = Math.Round(grossSalaryPerPeriod,2);
-                        paycheck.DeductionsForPeriod = Math.Round(totalDeductionsPerPeriod,2);
-                        paycheck.NetSalaryForPeriod = Math.Round(paycheck.GrossSalaryForPeriod - paycheck.DeductionsForPeriod,2);
-                        
+                        if (i==1)  // resolve rounding anomalies during first pay period of the year
+                        {
+                            decimal grossSalaryForPeriodRoundingError = grossAnnualSalary - (Math.Round(grossSalaryPerPeriod, 2, MidpointRounding.ToEven) * payPeriodsPerYear);
+                            decimal grossAnnualDeductionsRoundingError = grossAnnualDeductions - (Math.Round(totalDeductionsPerPeriod, 2, MidpointRounding.ToEven) * payPeriodsPerYear);
+
+                            paycheck.GrossSalaryForPeriod = String.Format("{0:C}", Math.Round(grossSalaryPerPeriod,2,MidpointRounding.ToEven) + grossSalaryForPeriodRoundingError);
+                            paycheck.DeductionsForPeriod = String.Format("{0:C}", Math.Round(totalDeductionsPerPeriod,2,MidpointRounding.ToEven) + grossAnnualDeductionsRoundingError);
+                            paycheck.NetSalaryForPeriod = String.Format("{0:C}", (Math.Round(grossSalaryPerPeriod, 2, MidpointRounding.ToEven) + grossSalaryForPeriodRoundingError) - (Math.Round(totalDeductionsPerPeriod, 2, MidpointRounding.ToEven) + grossAnnualDeductionsRoundingError));
+                        }
+                        else
+                        {
+                            paycheck.GrossSalaryForPeriod = String.Format("{0:C}", Math.Round(grossSalaryPerPeriod, 2, MidpointRounding.ToEven));
+                            paycheck.DeductionsForPeriod = String.Format("{0:C}", Math.Round(totalDeductionsPerPeriod, 2, MidpointRounding.ToEven));
+                            paycheck.NetSalaryForPeriod = String.Format("{0:C}", Math.Round(grossSalaryPerPeriod, 2, MidpointRounding.ToEven) - Math.Round(totalDeductionsPerPeriod, 2, MidpointRounding.ToEven));
+                        }
+
+
+
                         paycheckList.Paychecks.Add(paycheck);
                     }
 
@@ -288,7 +310,7 @@ public class EmployeesController : ControllerBase
         ApiResponse<List<GetEmployeeDto>> result = new ApiResponse<List<GetEmployeeDto>>();
 
         //task: use a more realistic production approach
-        // MA - Mocked loading from DB
+        //response:  I mocked a function "GetEmployeeListFromDB" which, in a real scenario, would load structured data from a SQL database.  Here, it merely supplies a hard-coded list of employees and dependents.
         List<GetEmployeeDto> employeeList = new List<GetEmployeeDto>();
         employeeList = GetEmployeeListFromDB();
         // ***

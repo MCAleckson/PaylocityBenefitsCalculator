@@ -16,6 +16,7 @@ public class IntegrationTest : IDisposable
                 _httpClient = new HttpClient
                 {
                     //task: update your port if necessary
+                    //response: Does not seem to be necessary
                     BaseAddress = new Uri("https://localhost:7124")
                 };
                 _httpClient.DefaultRequestHeaders.Add("accept", "text/plain");

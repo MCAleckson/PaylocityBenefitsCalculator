@@ -15,6 +15,7 @@ public class DependentIntegrationTests : IntegrationTest
 {
     [Fact]
     //task: make test pass
+    //response:  It passes with somewhat strict tests on the total record count and identical data between what is expected and what is loaded.
     public async Task WhenAskedForAllDependents_ShouldReturnAllDependents()
     {
         HttpResponseMessage response;
@@ -116,6 +117,7 @@ public class DependentIntegrationTests : IntegrationTest
 
     [Fact]
     //task: make test pass
+    //response: It passes when supplied the proper dependentID
     public async Task WhenAskedForADependent_ShouldReturnCorrectDependent()
     {
         HttpResponseMessage response;
@@ -150,6 +152,7 @@ public class DependentIntegrationTests : IntegrationTest
 
     [Fact]
     //task: make test pass
+    //response: It passes with a readable error message for a nonexistent dependentID.
     public async Task WhenAskedForANonexistentDependent_ShouldReturnNotFound()
     {
         HttpResponseMessage response;
