@@ -1,4 +1,7 @@
-﻿namespace Api.Models;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.ComponentModel;
+
+namespace Api.Models;
 
 public class Dependent
 {

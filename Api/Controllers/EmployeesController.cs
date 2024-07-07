@@ -13,7 +13,7 @@ namespace Api.Controllers;
 public class EmployeesController : ControllerBase
 {
 
-    private List<GetEmployeeDto> GetEmployeeListFromDB()      // Mocking list of employees loaded from DB
+    internal List<GetEmployeeDto> GetEmployeeListFromDB()      // Mocking list of employees loaded from DB - declared internal so Swagger can't see the methold but other classes in this assembly can see it.
     {
         var employees = new List<GetEmployeeDto>
         {
@@ -22,25 +22,23 @@ public class EmployeesController : ControllerBase
                 Id = 1,
                 FirstName = "LeBron",
                 LastName = "James",
-                Salary = 26000,
-                //Salary = 75420.99m,
+                Salary = 75420.99m,
                 DateOfBirth = new DateTime(1984, 12, 30)
             },
             new()
             {
                 Id = 2,
-                FirstName = "Larry",
-                LastName = "Bird",
-                Salary = 260000,
-                //Salary = 92365.22m,
+                FirstName = "Ja",
+                LastName = "Morant",
+                Salary = 92365.22m,
                 DateOfBirth = new DateTime(1999, 8, 10),
                 Dependents = new List<GetDependentDto>
                 {
                     new()
                     {
                         Id = 1,
-                        FirstName = "Birdy",
-                        LastName = "Bird",
+                        FirstName = "Spouse",
+                        LastName = "Morant",
                         Relationship = Relationship.Spouse,
                         DateOfBirth = new DateTime(1998, 3, 3)
                     },
@@ -48,7 +46,7 @@ public class EmployeesController : ControllerBase
                     {
                         Id = 2,
                         FirstName = "Child1",
-                        LastName = "Bird",
+                        LastName = "Morant",
                         Relationship = Relationship.Child,
                         DateOfBirth = new DateTime(2020, 6, 23)
                     },
@@ -56,7 +54,7 @@ public class EmployeesController : ControllerBase
                     {
                         Id = 3,
                         FirstName = "Child2",
-                        LastName = "Bird",
+                        LastName = "Morant",
                         Relationship = Relationship.Child,
                         DateOfBirth = new DateTime(2021, 5, 18)
                     }
@@ -67,8 +65,7 @@ public class EmployeesController : ControllerBase
                 Id = 3,
                 FirstName = "Michael",
                 LastName = "Jordan",
-                Salary = 2600000,
-                //Salary = 143211.12m,
+                Salary = 143211.12m,
                 DateOfBirth = new DateTime(1963, 2, 17),
                 Dependents = new List<GetDependentDto>
                 {
@@ -83,10 +80,46 @@ public class EmployeesController : ControllerBase
                     new()
                     {
                         Id = 5,
-                        FirstName = "DomesticPartner",
+                        FirstName = "DP",
                         LastName = "Jordan",
                         Relationship = Relationship.DomesticPartner,
+                        DateOfBirth = new DateTime(1970, 10, 2)
+                    }
+                }
+            },
+            new()
+            {
+                Id = 4,
+                FirstName = "Shaquille",
+                LastName = "O'Neal",
+                Salary = 2080000.00m,
+                //Salary = 143211.12m,
+                DateOfBirth = new DateTime(1963, 2, 17),
+                Dependents = new List<GetDependentDto>
+                {
+                    new()
+                    {
+                        Id = 6,
+                        FirstName = "Spouse",
+                        LastName = "O'Neal",
+                        Relationship = Relationship.Spouse,
+                        DateOfBirth = new DateTime(1974, 1, 2)
+                    },
+                    new()
+                    {
+                        Id = 7,
+                        FirstName = "Child1",
+                        LastName = "O'Neal",
+                        Relationship = Relationship.Child,
                         DateOfBirth = new DateTime(1985, 3, 2)
+                    },
+                    new()
+                    {
+                        Id = 8,
+                        FirstName = "Child2",
+                        LastName = "O'Neal",
+                        Relationship = Relationship.Child,
+                        DateOfBirth = new DateTime(1989, 5, 2)
                     }
                 }
             }
@@ -96,20 +129,22 @@ public class EmployeesController : ControllerBase
     }
 
     [SwaggerOperation(Summary = "Get employee by id")]
-    [HttpGet("/GetEmployee/{id}")]
-    public async Task<ActionResult<ApiResponse<GetEmployeeDto>>> GetEmployee(int id)  // Returns an existing employee by ID, and runs spouse/domestic partner business rule.
+    [HttpGet("/GetEmployee/{employeeID}")]
+    public async Task<ActionResult<ApiResponse<GetEmployeeDto>>> GetEmployee(int employeeID)  // Returns an existing employee by ID, and runs spouse/domestic partner business rule.
     {
+        // Though not required here, chose async task because in live system, async httpclient post calls would likely be being made, requiring this type of method.
+
         // Mock retrieval of employee list from DB
         List<GetEmployeeDto> employeeList = new List<GetEmployeeDto>();
         employeeList = GetEmployeeListFromDB();
         // ***
 
         GetEmployeeDto employee = new GetEmployeeDto();
-        var result = new ApiResponse<GetEmployeeDto>();
+        ApiResponse<GetEmployeeDto> result = new ApiResponse<GetEmployeeDto>();
 
         if (employeeList.Count > 0)
         {
-            employee = employeeList.Find(item => item.Id == id);
+            employee = employeeList.Find(item => item.Id == employeeID);
 
             if (employee != null)
             {
@@ -127,20 +162,20 @@ public class EmployeesController : ControllerBase
                 else
                 {
                     result.Success = false;
-                    result.Error = "Employee data business rule failure:  Employee has more than 1 spouse or domestic partner";
+                    result.Error = "Error:  Employee data business rule exception - Employee has more than one spouse or domestic partner.";
                     result.Data = employee;
                 }
             }
             else
             {
                 result.Success = false;
-                result.Error = "No employee with that ID exists.";
+                result.Error = "Error:  Employee with supplied ID not found.";
             }
         }
         else
         {
             result.Success = false;
-            result.Error = "Employee list retrieval failed.";
+            result.Error = "Error:  Employee list retrieval failed.";
         }
         return result;
     }
@@ -161,13 +196,6 @@ public class EmployeesController : ControllerBase
             Success = false
         };
 
-        // Mock retrieval of employee list from DB
-        //        List<GetEmployeeDto> employeeList = new List<GetEmployeeDto>();
-        //        employeeList = GetEmployeeListFromDB();
-        // ***
-
-        //        employee = employeeList.Find(item => item.Id == employeeID);
-
         employeeResult = await GetEmployee(employeeID);
 
         if (employeeResult.Value.Success == true)
@@ -175,56 +203,68 @@ public class EmployeesController : ControllerBase
             employee = employeeResult.Value.Data;
             if (employee != null)
             { 
+                paycheckList.EmployeeId = employee.Id;
                 paycheckList.FirstName = employee.FirstName;
                 paycheckList.LastName = employee.LastName;
 
-                if (employeeResult.Value.Success != false)
+                if (employeeResult.Value.Success != false)   // Build paycheck list
                 {
-                    // Build out paycheck list
 
-                    decimal defaultDeduction = 0;
-                    decimal defaultDependentDeduction = 0;
-                    decimal additionalDependentDeduction = 0;
-                    decimal additionalDependentsOver50Deduction = 0;
-                    decimal employeeSalaryOver80KDeduction = 0;
+                    // Initialize monthly variables
+                    decimal monthlyEmployeeSalary = 0;
+                    decimal monthlyDefaultDeduction = 0;
+                    decimal monthlyDependentsDeduction = 0;
+                    decimal monthlyAdditionalDependentsOver50Deduction = 0;
+                    decimal monthlyEmployeeSalaryOver80KDeduction = 0;
 
-                    // Set default deductions
+                    // Initialize per pay period variables
+                    decimal grossSalaryPerPeriod = 0;
+                    decimal totalDeductionsPerPeriod = 0;
 
-                    defaultDeduction = 1000 * 12 / payPeriodsPerYear;    // default employee deduction for benefits per pay period
-                    defaultDependentDeduction = 600 * employee.Dependents.Count() * 12 / payPeriodsPerYear;  // default dependent deduction per pay period
-                    if (employee.Salary > 80000) employeeSalaryOver80KDeduction = employee.Salary * (decimal).02 * 12 / payPeriodsPerYear;
-                    
-                    // Set dependent additional deductions
-                    
-                    // AGE CALCULATION !!!
-
-                    foreach (GetDependentDto dependentDto in employee.Dependents)
+                    // Set monthly variables
+                    monthlyEmployeeSalary = employee.Salary / 12;
+                    monthlyDefaultDeduction = 1000;                                     // Set default employee deduction for benefits per month
+                    monthlyDependentsDeduction = 600 * employee.Dependents.Count();     // Set default dependent deduction per dependent per month
+                    if (employee.Salary >= 80000)                                       // Set over $80K salary additional deduction per month (ON MONTHLY SALARY)
                     {
-                       //  if (dependentDto.)
-
+                        monthlyEmployeeSalaryOver80KDeduction = monthlyEmployeeSalary * .02m;  
                     }
+                    foreach (GetDependentDto dependentDto in employee.Dependents)       // Set dependents over 50 additional deductions
+                    {
+                        if (dependentDto.Age >= 50) monthlyAdditionalDependentsOver50Deduction += 200;
+                    }
+
+                    // Set per pay period variables
+                    grossSalaryPerPeriod = monthlyEmployeeSalary * 12 / payPeriodsPerYear;
+                    totalDeductionsPerPeriod = (monthlyDefaultDeduction + monthlyDependentsDeduction + monthlyAdditionalDependentsOver50Deduction + monthlyEmployeeSalaryOver80KDeduction) * 12 / payPeriodsPerYear;
                     
-                    
-                    
-                    
-                    
-                    
+                    // Create pay check list
+                    paycheckList.FirstName = employee.FirstName;
+                    paycheckList.LastName = employee.LastName;
+                    paycheckList.AnnualSalary = employee.Salary;
+
                     for (int i = 1; i <= payPeriodsPerYear; i++)
-                        {
-                        GetEmployeePaycheckDto paycheck = new GetEmployeePaycheckDto();
-                        
-                         }
-
-                        paycheckListResult.Data = paycheckList;
-
-                        paycheckListResult.Success = true;
-                        paycheckListResult.Data = paycheckList;
-                    }
-                    else
                     {
-                        paycheckListResult.Success = false;
-                        paycheckListResult.Error = employeeResult.Value.Error; ;
+                        GetEmployeePaycheckDto paycheck = new GetEmployeePaycheckDto();
+
+                        paycheck.Id = i;
+                        paycheck.GrossSalaryForPeriod = Math.Round(grossSalaryPerPeriod,2);
+                        paycheck.DeductionsForPeriod = Math.Round(totalDeductionsPerPeriod,2);
+                        paycheck.NetSalaryForPeriod = Math.Round(paycheck.GrossSalaryForPeriod - paycheck.DeductionsForPeriod,2);
+                        
+                        paycheckList.Paychecks.Add(paycheck);
                     }
+
+                    // Load result 
+                    paycheckListResult.Data = paycheckList;
+                    paycheckListResult.Success = true;
+                    paycheckListResult.Data = paycheckList;
+                }
+                else
+                {
+                    paycheckListResult.Success = false;
+                    paycheckListResult.Error = employeeResult.Value.Error; ;
+                }
             }
             else
             {
@@ -237,16 +277,15 @@ public class EmployeesController : ControllerBase
             paycheckListResult.Success = false;
             paycheckListResult.Error = employeeResult.Value.Error;
         }
-
  
         return paycheckListResult;
     }
 
     [SwaggerOperation(Summary = "Get all employees")]
     [HttpGet("/GetAllEmployees/")]
-    public async Task<ActionResult<ApiResponse<List<GetEmployeeDto>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<List<GetEmployeeDto>>>> GetAllEmployees()
     {
-        var result = new ApiResponse<List<GetEmployeeDto>>();
+        ApiResponse<List<GetEmployeeDto>> result = new ApiResponse<List<GetEmployeeDto>>();
 
         //task: use a more realistic production approach
         // MA - Mocked loading from DB
@@ -262,7 +301,7 @@ public class EmployeesController : ControllerBase
         else
         {
             result.Success = false;
-            result.Error = "No employees found in database.";
+            result.Error = "Error:  No employees found in database.";
         }
         return result;
     }
