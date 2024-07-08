@@ -12,7 +12,6 @@ namespace Api.Controllers;
 [Route("api/v1/[controller]")]
 public class EmployeesController : ControllerBase
 {
-
     internal List<GetEmployeeDto> GetEmployeeListFromDB()      // Mocking list of employees loaded from DB - declared internal so Swagger can't see the methold but other classes in this assembly can see it.
     {
         var employees = new List<GetEmployeeDto>
@@ -209,18 +208,16 @@ public class EmployeesController : ControllerBase
 
                 if (employeeResult.Value.Success != false)   // Build paycheck list
                 {
-                    // Initialize annual variables
+                    // Initialize annual, monthly and pay period variables
                     decimal grossAnnualSalary = 0;
                     decimal grossAnnualDeductions = 0;
 
-                    // Initialize monthly variables
                     decimal monthlyEmployeeSalary = 0;
                     decimal monthlyDefaultDeduction = 0;
                     decimal monthlyDependentsDeduction = 0;
                     decimal monthlyAdditionalDependentsOver50Deduction = 0;
                     decimal monthlyEmployeeSalaryOver80KDeduction = 0;
 
-                    // Initialize per pay period variables
                     decimal grossSalaryPerPeriod = 0;
                     decimal totalDeductionsPerPeriod = 0;
 

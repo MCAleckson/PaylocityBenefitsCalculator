@@ -8,7 +8,7 @@ public class GetDependentDto
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public DateTime DateOfBirth { get; set; }
-    public int Age
+    public int Age  // Calcs age simply
     {
         get
         {

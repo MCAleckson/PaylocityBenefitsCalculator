@@ -12,7 +12,7 @@ public class DependentsController : ControllerBase
 {
     private EmployeesController employeesController = new EmployeesController();
 
-    internal List<GetDependentDto> GetDependentListFromDB()      // Mocking list of employees loaded from DB - declared internal so Swagger can't see the methold but other classes in this assembly can see it.
+    internal List<GetDependentDto> GetDependentListFromDB()      // Mocking list of employees loaded from DB - declared internal so Swagger can't see the method but other classes in this assembly can see it.
     {
         List<GetDependentDto> dependentList = new List<GetDependentDto>();
 
@@ -32,7 +32,6 @@ public class DependentsController : ControllerBase
 
         return dependentList;
     }
-
 
     [SwaggerOperation(Summary = "Get dependent by id")]
     [HttpGet("/GetDependent/{dependentID}")]

@@ -1,7 +1,6 @@
 ﻿using Api.Models;
 
 namespace Api.Dtos.EmployeePaycheck;
-
 public class GetEmployeePaycheckDto
 {
     public int Id { get; set; }
