@@ -269,15 +269,12 @@ public class EmployeesController : ControllerBase
                             paycheck.NetSalaryForPeriod = String.Format("{0:C}", Math.Round(grossSalaryPerPeriod, 2, MidpointRounding.ToEven) - Math.Round(totalDeductionsPerPeriod, 2, MidpointRounding.ToEven));
                         }
 
-
-
                         paycheckList.Paychecks.Add(paycheck);
                     }
 
                     // Load result 
                     paycheckListResult.Data = paycheckList;
                     paycheckListResult.Success = true;
-                    paycheckListResult.Data = paycheckList;
                 }
                 else
                 {
